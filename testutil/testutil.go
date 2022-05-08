@@ -65,7 +65,7 @@ func (o testOps) Run(t *testing.T, s store.Store) {
 		return
 	}
 	opt := cmpopts.SortSlices(func(a, b store.Item) bool {
-		return a.Key > b.Key
+		return string(a.Key) > string(b.Key)
 	})
 	if diff := cmp.Diff(o.want, got, opt); diff != "" {
 		t.Fatalf("%s:\n%s", o, diff)
@@ -76,67 +76,74 @@ func RunStoreTest(t *testing.T, f factory) {
 	s := f(t)
 	steps := []testOps{
 		{
-			item:   store.Item{Key: "a", Data: []byte("a")},
+			item:   store.Item{Key: []byte("a"), Data: []byte("a")},
 			want:   []store.Item{},
 			action: SET,
 		},
 		{
-			item:   store.Item{Key: "b", Data: []byte("b")},
+			item:   store.Item{Key: []byte("b"), Data: []byte("b")},
 			want:   []store.Item{},
 			action: SET,
 		},
 		{
-			item: store.Item{Key: "a"},
+			item: store.Item{Key: []byte("a")},
 			want: []store.Item{
-				{Key: "a", Data: []byte("a")},
+				{Key: []byte("a"), Data: []byte("a")},
 			},
 			action: GET,
 		},
 		{
-			item: store.Item{Key: ""},
+			item: store.Item{Key: []byte("")},
 			want: []store.Item{
-				{Key: "a", Data: []byte("a")},
-				{Key: "b", Data: []byte("b")},
+				{Key: []byte("a"), Data: []byte("a")},
+				{Key: []byte("b"), Data: []byte("b")},
 			},
 			action: SCAN,
 		},
 		{
-			item:   store.Item{Key: "c"},
+			item:   store.Item{Key: []byte("c")},
 			want:   []store.Item{},
 			exist:  false,
 			action: EXIST,
 		},
 		{
-			item:     store.Item{Key: "c"},
+			item:     store.Item{Key: []byte("c")},
 			want:     []store.Item{},
 			hasError: true,
 			action:   GET,
 		},
 		{
-			item:     store.Item{Key: "c"},
+			item:     store.Item{Key: []byte("c")},
 			hasError: true,
 			action:   DELETE,
 		},
 		{
-			item:   store.Item{Key: "a"},
+			item:   store.Item{Key: []byte("a")},
 			want:   []store.Item{},
 			action: DELETE,
 		},
 		{
-			item:     store.Item{Key: "a"},
+			item:     store.Item{Key: []byte("a")},
 			want:     []store.Item{},
 			hasError: true,
 			action:   DELETE,
 		},
 		{
-			item:   store.Item{Key: "a"},
+			item:   store.Item{Key: []byte("a")},
 			want:   []store.Item{},
 			action: SCAN,
 		},
 		{
-			item: store.Item{Key: ""},
+			item: store.Item{Key: []byte("")},
 			want: []store.Item{
-				{Key: "b", Data: []byte("b")},
+				{Key: []byte("b"), Data: []byte("b")},
+			},
+			action: SCAN,
+		},
+		{
+			item: store.Item{},
+			want: []store.Item{
+				{Key: []byte("b"), Data: []byte("b")},
 			},
 			action: SCAN,
 		},

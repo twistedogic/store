@@ -4,14 +4,9 @@ import (
 	"context"
 )
 
-type Item struct {
-	Key  string
-	Data []byte
-}
-
 type Getter interface {
-	Exists(context.Context, string) (bool, error)
-	Get(context.Context, string) (Item, error)
+	Exists(context.Context, []byte) (bool, error)
+	Get(context.Context, []byte) (Item, error)
 }
 
 type Setter interface {
@@ -19,11 +14,11 @@ type Setter interface {
 }
 
 type Deleter interface {
-	Delete(context.Context, string) error
+	Delete(context.Context, []byte) error
 }
 
 type PrefixScanner interface {
-	PrefixScan(context.Context, string) ([]Item, error)
+	PrefixScan(context.Context, []byte) ([]Item, error)
 }
 
 type Store interface {
