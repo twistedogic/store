@@ -43,10 +43,13 @@ func (o testOps) Run(t *testing.T, s store.Store) {
 	ctx := context.TODO()
 	key := o.item.Key
 	var err error
-	g, got, exist := store.Item{}, make([]store.Item, 0), false
+	got, exist := make([]store.Item, 0), false
 	switch o.action {
 	case GET:
-		g, err = s.Get(ctx, key)
+		g, ok := s.Get(ctx, key)
+		if !ok {
+			err = fmt.Errorf("key %q not found", key)
+		}
 		got = append(got, g)
 	case SET:
 		err = s.Set(ctx, o.item)
@@ -55,8 +58,7 @@ func (o testOps) Run(t *testing.T, s store.Store) {
 	case SCAN:
 		got, err = s.PrefixScan(ctx, key)
 	case EXIST:
-		exist, err = s.Exists(ctx, key)
-		if exist != o.exist {
+		if _, exist = s.Get(ctx, key); exist != o.exist {
 			t.Fatalf("%s: exist want: %v, got: %v", o, o.exist, exist)
 		}
 	}

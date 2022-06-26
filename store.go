@@ -5,8 +5,7 @@ import (
 )
 
 type Getter interface {
-	Exists(context.Context, []byte) (bool, error)
-	Get(context.Context, []byte) (Item, error)
+	Get(context.Context, []byte) (Item, bool)
 }
 
 type Setter interface {

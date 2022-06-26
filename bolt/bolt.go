@@ -35,7 +35,7 @@ func New(file string) (store.Store, error) {
 	}, nil
 }
 
-func (s Store) Get(ctx context.Context, key []byte) (store.Item, error) {
+func (s Store) Get(ctx context.Context, key []byte) (store.Item, bool) {
 	item := store.Item{Key: key}
 	err := s.db.View(func(tx *bolt.Tx) error {
 		v := tx.Bucket([]byte(s.bucketName)).Get(key)
@@ -45,14 +45,7 @@ func (s Store) Get(ctx context.Context, key []byte) (store.Item, error) {
 		item.Data = v
 		return nil
 	})
-	return item, err
-}
-
-func (s Store) Exists(ctx context.Context, key []byte) (bool, error) {
-	if _, err := s.Get(ctx, key); err != nil {
-		return false, nil
-	}
-	return true, nil
+	return item, err == nil
 }
 
 func (s Store) Set(ctx context.Context, i store.Item) error {
@@ -62,8 +55,8 @@ func (s Store) Set(ctx context.Context, i store.Item) error {
 }
 
 func (s Store) Delete(ctx context.Context, key []byte) error {
-	if _, err := s.Get(ctx, key); err != nil {
-		return err
+	if _, exist := s.Get(ctx, key); !exist {
+		return fmt.Errorf("key %s not found", key)
 	}
 	return s.db.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket([]byte(s.bucketName)).Delete(key)

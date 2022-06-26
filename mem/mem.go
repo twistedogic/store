@@ -17,21 +17,13 @@ func New() (Store, error) {
 	return Store{m: new(sync.Map)}, nil
 }
 
-func (s Store) Get(ctx context.Context, key []byte) (store.Item, error) {
+func (s Store) Get(ctx context.Context, key []byte) (store.Item, bool) {
 	v, ok := s.m.Load(string(key))
 	if !ok {
-		return store.Item{}, fmt.Errorf("key %s not found", key)
+		return store.Item{}, ok
 	}
 	i, ok := v.(store.Item)
-	if !ok {
-		return store.Item{}, fmt.Errorf("value for key %s is not Item", key)
-	}
-	return i, nil
-}
-
-func (s Store) Exists(ctx context.Context, key []byte) (bool, error) {
-	_, ok := s.m.Load(string(key))
-	return ok, nil
+	return i, ok
 }
 
 func (s Store) Set(ctx context.Context, i store.Item) error {
@@ -40,11 +32,7 @@ func (s Store) Set(ctx context.Context, i store.Item) error {
 }
 
 func (s Store) Delete(ctx context.Context, key []byte) error {
-	exist, err := s.Exists(ctx, key)
-	if err != nil {
-		return err
-	}
-	if !exist {
+	if _, exist := s.Get(ctx, key); !exist {
 		return fmt.Errorf("key %s not found", key)
 	}
 	s.m.Delete(string(key))
