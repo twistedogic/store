@@ -3,15 +3,12 @@ package bolt
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/twistedogic/store"
 )
-
-var KeyNotFoundErr = errors.New("key not found")
 
 type Store struct {
 	bucketName string
@@ -58,9 +55,12 @@ func (s Store) Delete(ctx context.Context, key []byte) error {
 	if _, exist := s.Get(ctx, key); !exist {
 		return fmt.Errorf("key %s not found", key)
 	}
-	return s.db.Update(func(tx *bolt.Tx) error {
+	if err := s.db.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket([]byte(s.bucketName)).Delete(key)
-	})
+	}); err != nil {
+		return err
+	}
+	return s.db.Sync()
 }
 
 func (s Store) PrefixScan(ctx context.Context, prefix []byte) ([]store.Item, error) {
