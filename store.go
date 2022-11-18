@@ -2,23 +2,23 @@ package store
 
 import (
 	"context"
+	"io"
 )
 
 type Getter interface {
-	Exists(context.Context, []byte) (bool, error)
-	Get(context.Context, []byte) (Item, error)
+	Get(context.Context, string, io.Writer) (bool, error)
 }
 
 type Setter interface {
-	Set(context.Context, Item) error
+	Set(context.Context, io.Reader, ...Metadata) error
 }
 
 type Deleter interface {
-	Delete(context.Context, []byte) error
+	Delete(context.Context, string) error
 }
 
 type PrefixScanner interface {
-	PrefixScan(context.Context, []byte) ([]Item, error)
+	PrefixScan(context.Context, string) ([]string, error)
 }
 
 type Store interface {
